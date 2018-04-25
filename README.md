@@ -19,9 +19,9 @@ allprojects {
 <b>Step 2.</b> Add the dependency
 ```gradle
 dependencies {
-        implementation 'com.github.happyfresh.HappySupportAndroid:happysupport:1.0.0'
+        implementation 'com.github.happyfresh.HappySupportAndroid:happysupport:$latest_version'
         // extentions for kotlin
-        implementation 'com.github.happyfresh.HappySupportAndroid:happysupport-kotlinextentions:1.0.0'
+        implementation 'com.github.happyfresh.HappySupportAndroid:happysupport-kotlinextentions:$latest_version'
 }
 ```
 
