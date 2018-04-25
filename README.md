@@ -26,5 +26,5 @@ dependencies {
 ```
 
 ## [Index](https://github.com/happyfresh/HappySupportAndroid/wiki)
-## Helper
+### Helper
 * [StringHelper](https://github.com/happyfresh/HappySupportAndroid/wiki/StringHelper)
