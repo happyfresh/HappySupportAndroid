@@ -14,13 +14,20 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        val tv = findViewById<TextView>(R.id.hallo)
+        val tvHallo = findViewById<TextView>(R.id.hallo)
+        val tvWelcome1 = findViewById<TextView>(R.id.welcome_1)
+        val tvWelcome2 = findViewById<TextView>(R.id.welcome_2)
 
-        tv.text = Html.fromHtml(
+        val welcome = StringHelper.getStringArray(this, R.array.welcome, arrayOf(arrayOf("Happy", 2), arrayOf("Fresh")), arrayOf(arrayOf("Fresh")))
+
+        tvHallo.text = Html.fromHtml(
                 StringHelper.getString(this, R.string.hallo_2, arrayOf("Happy", 2), arrayOf("Fresh")))
 
         // Using kotlin extentions
-        tv.text = Html.fromHtml(
+        tvHallo.text = Html.fromHtml(
                 getStringHelper(R.string.hallo_2, arrayOf("Happy", 2), arrayOf("Fresh")))
+
+        tvWelcome1.text = Html.fromHtml(welcome[0])
+        tvWelcome2.text = Html.fromHtml(welcome[1])
     }
 }

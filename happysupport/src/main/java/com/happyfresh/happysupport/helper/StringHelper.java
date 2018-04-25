@@ -1,6 +1,7 @@
 package com.happyfresh.happysupport.helper;
 
 import android.content.Context;
+import android.support.annotation.ArrayRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 
@@ -12,16 +13,25 @@ public class StringHelper {
 
     @NonNull
     public static String getString(@NonNull Context context, @NonNull @StringRes int stringResId, Object[]... objects) {
-        String value;
+        String text;
         if (objects.length == 0) {
-            value = context.getString(stringResId);
+            text = context.getString(stringResId);
         }
         else {
-            value = context.getString(stringResId, objects[0]);
+            text = context.getString(stringResId, objects[0]);
         }
 
+        if (objects.length > 1) {
+            return getString(context, text, Arrays.copyOfRange(objects, 1, objects.length));
+        }
+        else {
+            return getString(context, text);
+        }
+    }
+
+    public static String getString(@NonNull Context context, @NonNull String text, Object[]... objects) {
         Pattern pattern = Pattern.compile("\\{@\\w*\\/\\w*\\}");
-        Matcher matcher = pattern.matcher(value);
+        Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
             String s = matcher.group(0);
             String sResId = s.replace("{", "").replace("}", "");
@@ -35,19 +45,36 @@ public class StringHelper {
             if (resType.equals("color")) {
                 String colorHex = context.getString(resId);
                 colorHex = colorHex.substring(0, 1).concat(colorHex.substring(3));
-                value = value.replace(s, colorHex);
+                text = text.replace(s, colorHex);
             }
             else {
-                if (objects.length > 1) {
-                    value = value.replace(s, getString(context, resId, Arrays.copyOfRange(objects, 1, objects.length)));
+                if (objects.length > 0) {
+                    text = text.replace(s, getString(context, resId, objects));
                 }
                 else {
-                    value = value.replace(s, getString(context, resId));
+                    text = text.replace(s, getString(context, resId));
                 }
             }
         }
 
-        return value;
+        return text;
     }
 
+    @NonNull
+    public static String[] getStringArray(@NonNull Context context, @NonNull @ArrayRes int stringResId,
+            Object[][]... objects) {
+        String[] text = context.getResources().getStringArray(stringResId);
+
+        if (text.length > 0) {
+            for (int i = 0; i < text.length; i++) {
+                if (objects.length > i) {
+                    text[i] = getString(context, text[i], objects[i]);
+                } else {
+                    text[i] = getString(context, text[i]);
+                }
+            }
+        }
+
+        return text;
+    }
 }
