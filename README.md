@@ -1,6 +1,6 @@
 # HappySupportAndroid
 
-[![](https://jitpack.io/v/happyfresh/HappySupportAndroid.svg)](https://jitpack.io/#happyfresh/HappySupportAndroid) ![Downloads](https://jitpack.io/v/happyfresh/HappySupportAndroid/month.svg)
+[![](https://jitpack.io/v/happyfresh/HappySupportAndroid.svg)](https://jitpack.io/#happyfresh/HappySupportAndroid)
 
 This library for supporting our android development
 
