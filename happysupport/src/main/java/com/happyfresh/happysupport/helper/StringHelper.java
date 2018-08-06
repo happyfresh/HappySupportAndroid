@@ -61,7 +61,7 @@ public class StringHelper {
     }
 
     @NonNull
-    public static String[] getStringArray(@NonNull Context context, @NonNull @ArrayRes int stringResId,
+    public static String[] getStringArray(@NonNull Context context, @ArrayRes int stringResId,
             Object[][]... objects) {
         String[] text = context.getResources().getStringArray(stringResId);
 

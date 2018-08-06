@@ -1,1 +1,1 @@
-include ':app', ':happysupport', ':happysupport-kotlinextentions'
+include ':app', ':happysupport', ':happysupport-kotlinextentions', ':happytracker'
