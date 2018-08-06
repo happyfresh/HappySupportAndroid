@@ -28,3 +28,5 @@ dependencies {
 ## [Index](https://github.com/happyfresh/HappySupportAndroid/wiki)
 ### Helper
 * [StringHelper](https://github.com/happyfresh/HappySupportAndroid/wiki/StringHelper)
+
+### [HappyTracker](https://github.com/happyfresh/HappySupportAndroid/wiki/HappyTracker)
