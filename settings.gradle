@@ -1,1 +1,1 @@
-include ':app', ':happysupport', ':happysupport-kotlinextentions', ':happytracker'
+include ':app', ':happysupport', ':happysupport-kotlinextentions', ':happytracker', ':happyrouter', ':happyrouter-annotations', ':happyrouter-processor'

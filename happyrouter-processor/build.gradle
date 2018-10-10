@@ -1,0 +1,13 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'com.google.guava:guava:24.1-jre'
+    implementation 'com.squareup:javapoet:1.9.0'
+
+    implementation project(path: ':happyrouter-annotations')
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"

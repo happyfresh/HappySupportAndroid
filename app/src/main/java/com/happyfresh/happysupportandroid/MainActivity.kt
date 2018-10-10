@@ -1,16 +1,22 @@
 package com.happyfresh.happysupportandroid
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.text.Html
 import android.widget.TextView
+import com.happyfresh.happyrouter.Router
+import com.happyfresh.happyrouter.annotations.Route
 import com.happyfresh.happysupport.helper.StringHelper
 import com.happyfresh.happysupportkotlinextentions.helper.getStringHelper
+import com.happyfresh.happytracker.Tracker
+import org.parceler.Parcels
 
-class MainActivity : AppCompatActivity() {
+@Route
+open class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        Router.addTypeConverter(PeopleTypeConverter::class.java)
 
         setContentView(R.layout.activity_main)
 
@@ -29,5 +35,23 @@ class MainActivity : AppCompatActivity() {
 
         tvWelcome1.text = Html.fromHtml(welcome[0])
         tvWelcome2.text = Html.fromHtml(welcome[1])
+
+        Tracker.create(this, MainTracker::class.java).test()
+
+        tvHallo.setOnClickListener {
+            openHomeScreen(tvHallo.text.toString())
+        }
+        tvWelcome1.setOnClickListener {
+            openHomeScreen(tvWelcome1.text.toString())
+        }
+        tvWelcome2.setOnClickListener {
+            openHomeScreen(tvWelcome2.text.toString())
+        }
+    }
+
+    private fun openHomeScreen(title: String) {
+        val people = People().also { it.name = "HappyFresh" }
+        val router = HomeActivityRouter(Parcels.wrap(people), title)
+        startActivity(router.create(this))
     }
 }
