@@ -19,11 +19,17 @@ allprojects {
 <b>Step 2.</b> Add the dependency
 ```gradle
 dependencies {
-        implementation 'com.github.happyfresh.HappySupportAndroid:happysupport:$latest_version'
+        // HappySupport
+        implementation "com.github.happyfresh.HappySupportAndroid:happysupport:$latest_version"
         // extentions for kotlin
-        implementation 'com.github.happyfresh.HappySupportAndroid:happysupport-kotlinextentions:$latest_version'
+        implementation "com.github.happyfresh.HappySupportAndroid:happysupport-kotlinextentions:$latest_version"
         
-        implementation 'com.github.happyfresh.HappySupportAndroid:happytracker:$latest_version'
+        // HappyTracker
+        implementation "com.github.happyfresh.HappySupportAndroid:happytracker:$latest_version"
+        
+        // HappyRouter
+        implementation "com.github.happyfresh.HappySupportAndroid:happyrouter:$latest_version"
+        annotationProcessor "com.github.happyfresh.HappySupportAndroid:happyrouter-processor:$latest_version"
 }
 ```
 
