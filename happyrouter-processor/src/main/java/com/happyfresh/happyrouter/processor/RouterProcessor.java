@@ -11,9 +11,11 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -318,7 +320,9 @@ public class RouterProcessor extends AbstractProcessor {
             while (requiredClassWithParents.containsKey(requiredParentTypeElement)) {
                 Map<Element, TypeMirror> requiredParentFields = requiredClassWithFields.get(parentTypeElement);
                 if (requiredParentFields != null && !requiredParentFields.isEmpty()) {
-                    for (Map.Entry<Element, TypeMirror> entry : requiredParentFields.entrySet()) {
+                    TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(Comparator.comparing(e -> e.getSimpleName().toString()));
+                    treeMap.putAll(requiredParentFields);
+                    for (Map.Entry<Element, TypeMirror> entry : treeMap.entrySet()) {
                         Element requiredElement = entry.getKey();
                         TypeMirror requiredTypeMirror = entry.getValue();
                         String name = requiredElement.getSimpleName().toString();
@@ -368,12 +372,10 @@ public class RouterProcessor extends AbstractProcessor {
                 methodBuilder.returns(ClassName.get(typeElement));
                 if (isFragmentV4) {
                     methodBuilder.addStatement("return super.createV4(" + className + ".class)");
-                }
-                else {
+                } else {
                     methodBuilder.addStatement("return super.create(" + className + ".class)");
                 }
-            }
-            else {
+            } else {
                 methodBuilder.returns(typeClassIntent)
                         .addParameter(typeClassContext, "context")
                         .addStatement("return super.create(context, " + className + ".class)");
@@ -446,8 +448,7 @@ public class RouterProcessor extends AbstractProcessor {
 
         if (binderSuperClassName == typeClassExtrasBinding) {
             binderConstructorBuilder.addStatement("super(bundle, optionals)");
-        }
-        else {
+        } else {
             binderConstructorBuilder.addStatement("super(target, bundle, optionals)");
         }
 

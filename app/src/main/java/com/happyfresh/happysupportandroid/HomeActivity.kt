@@ -12,6 +12,10 @@ class HomeActivity : BaseActivity() {
     @Extra(key = "title")
     internal var title: String? = null
 
+    @JvmField
+    @Extra(key = "subtitle")
+    internal var subtitle: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)

@@ -51,7 +51,7 @@ open class MainActivity : BaseActivity() {
 
     private fun openHomeScreen(title: String) {
         val people = People().also { it.name = "HappyFresh" }
-        val router = HomeActivityRouter(Parcels.wrap(people), title)
+        val router = HomeActivityRouter(Parcels.wrap(people), title, "")
         startActivity(router.create(this))
     }
 }
