@@ -346,7 +346,9 @@ public class RouterProcessor extends AbstractProcessor {
 
             Map<Element, TypeMirror> fields1 = requiredClassWithFields.get(typeElement);
             if (fields1 != null) {
-                for (Map.Entry<Element, TypeMirror> entry : fields1.entrySet()) {
+                TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(Comparator.comparing(e -> e.getSimpleName().toString()));
+                treeMap.putAll(fields1);
+                for (Map.Entry<Element, TypeMirror> entry : treeMap.entrySet()) {
                     Element requiredElement = entry.getKey();
                     TypeMirror requiredTypeMirror = entry.getValue();
                     String name = requiredElement.getSimpleName().toString();
