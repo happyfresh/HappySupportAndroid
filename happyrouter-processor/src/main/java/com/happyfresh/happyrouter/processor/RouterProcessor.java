@@ -247,25 +247,29 @@ public class RouterProcessor extends AbstractProcessor {
             String classPackageName = elements.getPackageOf(typeElement).getQualifiedName().toString();
 
             /*
-             * 2- Get parent type element
-             */
-            ClassName routerSuperClassName = typeClassBaseRouter;
-            if (classWithParents.containsKey(parentTypeElement)) {
-                String parentSimpleName = parentTypeElement.getSimpleName().toString();
-                String parentPackageName = elements.getPackageOf(parentTypeElement).getQualifiedName().toString();
-                routerSuperClassName = ClassName.get(parentPackageName, parentSimpleName + ROUTER_CLASS_SUFFIX);
-            }
-
-            /*
-             * 3- Check type element is activity or fragment or fragment v4
+             * 2- Check type element is activity or fragment or fragment v4
              */
             boolean isFragment = false;
             boolean isFragmentV4 = false;
             if (types.isAssignable(typeElement.asType(), fragmentTypeMirror) || types
                     .isAssignable(typeElement.asType(), fragmentV4TypeMirror)) {
-                routerSuperClassName = typeClassBaseFragmentRouter;
                 isFragment = true;
                 isFragmentV4 = types.isAssignable(typeElement.asType(), fragmentV4TypeMirror);
+            }
+
+            /*
+             * 3- Get parent type element
+             */
+            ClassName routerSuperClassName = typeClassBaseRouter;
+
+            if (isFragment) {
+                routerSuperClassName = typeClassBaseFragmentRouter;
+            }
+
+            if (classWithParents.containsKey(parentTypeElement)) {
+                String parentSimpleName = parentTypeElement.getSimpleName().toString();
+                String parentPackageName = elements.getPackageOf(parentTypeElement).getQualifiedName().toString();
+                routerSuperClassName = ClassName.get(parentPackageName, parentSimpleName + ROUTER_CLASS_SUFFIX);
             }
 
             /*
