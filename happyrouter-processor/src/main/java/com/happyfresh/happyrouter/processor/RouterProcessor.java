@@ -11,6 +11,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,6 +60,14 @@ public class RouterProcessor extends AbstractProcessor {
 
     private static final String bundlePutStatement = "intent.putExtra(\"%1$s\", %2$s)";
 
+    private static final String bundlePutIntegerArrayListStatement = "intent.putIntegerArrayListExtra(\"%1$s\", (java.util.ArrayList<%2$s>) %3$s)";
+
+    private static final String bundlePutStringArrayListStatement = "intent.putStringArrayListExtra(\"%1$s\", (java.util.ArrayList<%2$s>) %3$s)";
+
+    private static final String bundlePutCharSequenceArrayListStatement = "intent.putCharSequenceArrayListExtra(\"%1$s\", (java.util.ArrayList<%2$s>) %3$s)";
+
+    private static final String bundlePutParcelableArrayListStatement = "intent.putParcelableArrayListExtra(\"%1$s\", (java.util.ArrayList<%2$s>) %3$s)";
+
     private static final String bundleGetStatement = "get(\"%1$s\", %2$s, %3$s)";
 
     private Filer filer;
@@ -87,6 +96,14 @@ public class RouterProcessor extends AbstractProcessor {
 
     private TypeMirror serializableTypeMirror;
 
+    private TypeMirror listTypeMirror;
+
+    private TypeMirror integerTypeMirror;
+
+    private TypeMirror charSequenceTypeMirror;
+
+    private TypeMirror stringTypeMirror;
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
         super.init(processingEnvironment);
@@ -108,6 +125,14 @@ public class RouterProcessor extends AbstractProcessor {
                 .erasure(elements.getTypeElement("android.os.Parcelable").asType());
         serializableTypeMirror = types
                 .erasure(elements.getTypeElement("java.io.Serializable").asType());
+        listTypeMirror = types
+                .erasure(elements.getTypeElement("java.util.List").asType());
+        integerTypeMirror = types
+                .erasure(elements.getTypeElement("java.lang.Integer").asType());
+        stringTypeMirror = types
+                .erasure(elements.getTypeElement("java.lang.String").asType());
+        charSequenceTypeMirror = types
+                .erasure(elements.getTypeElement("java.lang.CharSequence").asType());
     }
 
     @Override
@@ -301,13 +326,35 @@ public class RouterProcessor extends AbstractProcessor {
                             .substring(1);
 
                     TypeName typeNameParameter = getTypeNameParameter(typeMirror);
+                    String statement = String.format(bundlePutStatement, extra.key(), elementName);
+
+                    if (types.isAssignable(typeMirror, listTypeMirror)) {
+                        String stringTypeName = ClassName.get(typeMirror).toString();
+                        int idx1 = stringTypeName.indexOf("<") + 1;
+                        int idx2 = stringTypeName.indexOf(">");
+                        String stringGenericTypeName = stringTypeName.substring(idx1, idx2).replace("? extends ", "");
+                        TypeMirror genericTypeMirror = elements.getTypeElement(stringGenericTypeName).asType();
+                        if (types.isAssignable(genericTypeMirror, integerTypeMirror)) {
+                            statement = String.format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName, elementName);
+                        }
+                        else if (types.isAssignable(genericTypeMirror, stringTypeMirror)) {
+                            statement = String.format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName, elementName);
+                        }
+                        else if (types.isAssignable(genericTypeMirror, charSequenceTypeMirror)) {
+                            statement = String.format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName, elementName);
+                        }
+                        else {
+                            typeNameParameter = ClassName.get(listTypeMirror);
+                            statement = String.format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable", elementName);
+                        }
+                    }
 
                     MethodSpec.Builder methodBuilder = MethodSpec
                             .methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC)
                             .returns(returnMethodClassName)
                             .addParameter(typeNameParameter, elementName)
-                            .addStatement(String.format(bundlePutStatement, extra.key(), elementName))
+                            .addStatement(statement)
                             .addStatement("return this");
 
                     routerClassBuilder.addMethod(methodBuilder.build());
@@ -359,9 +406,10 @@ public class RouterProcessor extends AbstractProcessor {
                     Extra extra = classWithExtras.get(typeElement).get(requiredElement);
 
                     TypeName requiredTypeNameParameter = getTypeNameParameter(requiredTypeMirror);
+                    String statement = String.format(bundlePutStatement, extra.key(), name);
 
                     routerConstructorBuilder.addParameter(requiredTypeNameParameter, name)
-                            .addStatement(String.format(bundlePutStatement, extra.key(), name));
+                            .addStatement(statement);
                 }
             }
 
@@ -398,6 +446,10 @@ public class RouterProcessor extends AbstractProcessor {
 
     private TypeName getTypeNameParameter(TypeMirror typeMirror) {
         TypeName typeNameParameter = ClassName.get(typeMirror);
+        if (types.isAssignable(typeMirror, listTypeMirror)) {
+            return typeNameParameter;
+        }
+
         if (!(typeNameParameter.isPrimitive() || typeNameParameter
                 .isBoxedPrimitive() || types
                 .isAssignable(typeMirror, parcelableTypeMirror) || types
@@ -469,10 +521,18 @@ public class RouterProcessor extends AbstractProcessor {
                 TypeName typeName = ClassName.get(typeMirror);
                 String name = element.getSimpleName().toString();
                 Extra extra = enclosingExtras.get(element);
+                String stringTypeName = typeName.toString();
+
+                if (types.isAssignable(typeMirror, listTypeMirror)) {
+                    int idx1 = stringTypeName.indexOf("<");
+                    stringTypeName = stringTypeName.substring(0, idx1);
+                }
+
+                String statement = String
+                        .format(bundleGetStatement, extra.key(), "target." + name, stringTypeName + ".class");
 
                 binderConstructorBuilder
-                        .addStatement("target." + name + " = (" + typeName + ") " + String
-                                .format(bundleGetStatement, extra.key(), "target." + name, typeName + ".class"));
+                        .addStatement("target." + name + " = (" + typeName + ") " + statement);
             }
         }
 

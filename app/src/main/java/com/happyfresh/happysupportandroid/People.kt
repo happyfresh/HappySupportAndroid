@@ -5,5 +5,6 @@ import org.parceler.Parcel
 @Parcel
 class People {
 
-    var name: String = ""
+    @JvmField
+    internal var name: String = ""
 }

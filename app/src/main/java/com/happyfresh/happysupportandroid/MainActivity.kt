@@ -1,6 +1,7 @@
 package com.happyfresh.happysupportandroid
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.text.Html
 import android.widget.TextView
 import com.happyfresh.happyrouter.Router
@@ -52,6 +53,18 @@ open class MainActivity : BaseActivity() {
     private fun openHomeScreen(title: String) {
         val people = People().also { it.name = "HappyFresh" }
         val router = HomeActivityRouter(Parcels.wrap(people), title, "")
+        val list1 = ArrayList<Int>()
+        list1.add(1)
+        val list2 = ArrayList<String>()
+        list2.add("1")
+        val list3 = ArrayList<CharSequence>()
+        list3.add("1")
+        val list4 = ArrayList<Parcelable>()
+        list4.add(Parcels.wrap(people))
+        router.putList1(list1)
+        router.putList2(list2)
+        router.putList3(list3)
+        router.putList4(list4)
         startActivity(router.create(this))
     }
 }
