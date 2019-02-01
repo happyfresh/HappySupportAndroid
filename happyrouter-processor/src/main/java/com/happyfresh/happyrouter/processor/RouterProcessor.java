@@ -408,6 +408,27 @@ public class RouterProcessor extends AbstractProcessor {
                     TypeName requiredTypeNameParameter = getTypeNameParameter(requiredTypeMirror);
                     String statement = String.format(bundlePutStatement, extra.key(), name);
 
+                    if (types.isAssignable(requiredTypeMirror, listTypeMirror)) {
+                        String stringTypeName = ClassName.get(requiredTypeMirror).toString();
+                        int idx1 = stringTypeName.indexOf("<") + 1;
+                        int idx2 = stringTypeName.indexOf(">");
+                        String stringGenericTypeName = stringTypeName.substring(idx1, idx2).replace("? extends ", "");
+                        TypeMirror genericTypeMirror = elements.getTypeElement(stringGenericTypeName).asType();
+                        if (types.isAssignable(genericTypeMirror, integerTypeMirror)) {
+                            statement = String.format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName, name);
+                        }
+                        else if (types.isAssignable(genericTypeMirror, stringTypeMirror)) {
+                            statement = String.format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName, name);
+                        }
+                        else if (types.isAssignable(genericTypeMirror, charSequenceTypeMirror)) {
+                            statement = String.format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName, name);
+                        }
+                        else {
+                            requiredTypeNameParameter = ClassName.get(listTypeMirror);
+                            statement = String.format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable", name);
+                        }
+                    }
+
                     routerConstructorBuilder.addParameter(requiredTypeNameParameter, name)
                             .addStatement(statement);
                 }

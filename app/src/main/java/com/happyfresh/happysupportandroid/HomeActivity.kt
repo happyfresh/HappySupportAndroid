@@ -18,7 +18,7 @@ class HomeActivity : BaseActivity() {
     internal var subtitle: String? = null
 
     @JvmField
-    @Extra(key = "list1", required = false)
+    @Extra(key = "list1")
     internal var list1: List<Int>? = null
 
     @JvmField
@@ -26,7 +26,7 @@ class HomeActivity : BaseActivity() {
     internal var list2: List<String>? = null
 
     @JvmField
-    @Extra(key = "list3", required = false)
+    @Extra(key = "list3")
     internal var list3: List<CharSequence>? = null
 
     @JvmField
