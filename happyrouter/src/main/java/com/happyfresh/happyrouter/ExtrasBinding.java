@@ -29,11 +29,19 @@ public class ExtrasBinding {
     }
 
     private Object get(String key, Bundle bundle, int index) {
-        Object result = bundle.get(key);
-        if (result == null && optionals != null && index < optionals.length) {
-            return get(key, optionals[index + 1], index + 1);
+        if (bundle == null) {
+            return null;
         }
 
-        return result;
+        try {
+            Object result = bundle.get(key);
+            if (result == null && optionals != null && index < optionals.length) {
+                return get(key, optionals[index + 1], index + 1);
+            }
+
+            return result;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

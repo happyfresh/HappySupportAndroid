@@ -11,7 +11,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +56,8 @@ public class RouterProcessor extends AbstractProcessor {
             .get("com.happyfresh.happyrouter", "ExtrasBinding");
 
     private static final ClassName typeClassParcelable = ClassName.get("android.os", "Parcelable");
+
+    private static final ClassName typeClassException = ClassName.get("java.lang", "Exception");
 
     private static final String bundlePutStatement = "intent.putExtra(\"%1$s\", %2$s)";
 
@@ -335,17 +336,25 @@ public class RouterProcessor extends AbstractProcessor {
                         String stringGenericTypeName = stringTypeName.substring(idx1, idx2).replace("? extends ", "");
                         TypeMirror genericTypeMirror = elements.getTypeElement(stringGenericTypeName).asType();
                         if (types.isAssignable(genericTypeMirror, integerTypeMirror)) {
-                            statement = String.format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName, elementName);
+                            statement = String
+                                    .format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName,
+                                            elementName);
                         }
                         else if (types.isAssignable(genericTypeMirror, stringTypeMirror)) {
-                            statement = String.format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName, elementName);
+                            statement = String
+                                    .format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName,
+                                            elementName);
                         }
                         else if (types.isAssignable(genericTypeMirror, charSequenceTypeMirror)) {
-                            statement = String.format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName, elementName);
+                            statement = String
+                                    .format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName,
+                                            elementName);
                         }
                         else {
                             typeNameParameter = ClassName.get(listTypeMirror);
-                            statement = String.format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable", elementName);
+                            statement = String
+                                    .format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable",
+                                            elementName);
                         }
                     }
 
@@ -371,7 +380,8 @@ public class RouterProcessor extends AbstractProcessor {
             while (requiredClassWithParents.containsKey(requiredParentTypeElement)) {
                 Map<Element, TypeMirror> requiredParentFields = requiredClassWithFields.get(parentTypeElement);
                 if (requiredParentFields != null && !requiredParentFields.isEmpty()) {
-                    TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(Comparator.comparing(e -> e.getSimpleName().toString()));
+                    TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(
+                            Comparator.comparing(e -> e.getSimpleName().toString()));
                     treeMap.putAll(requiredParentFields);
                     for (Map.Entry<Element, TypeMirror> entry : treeMap.entrySet()) {
                         Element requiredElement = entry.getKey();
@@ -397,7 +407,8 @@ public class RouterProcessor extends AbstractProcessor {
 
             Map<Element, TypeMirror> fields1 = requiredClassWithFields.get(typeElement);
             if (fields1 != null) {
-                TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(Comparator.comparing(e -> e.getSimpleName().toString()));
+                TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(
+                        Comparator.comparing(e -> e.getSimpleName().toString()));
                 treeMap.putAll(fields1);
                 for (Map.Entry<Element, TypeMirror> entry : treeMap.entrySet()) {
                     Element requiredElement = entry.getKey();
@@ -415,17 +426,25 @@ public class RouterProcessor extends AbstractProcessor {
                         String stringGenericTypeName = stringTypeName.substring(idx1, idx2).replace("? extends ", "");
                         TypeMirror genericTypeMirror = elements.getTypeElement(stringGenericTypeName).asType();
                         if (types.isAssignable(genericTypeMirror, integerTypeMirror)) {
-                            statement = String.format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName, name);
+                            statement = String
+                                    .format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName,
+                                            name);
                         }
                         else if (types.isAssignable(genericTypeMirror, stringTypeMirror)) {
-                            statement = String.format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName, name);
+                            statement = String
+                                    .format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName,
+                                            name);
                         }
                         else if (types.isAssignable(genericTypeMirror, charSequenceTypeMirror)) {
-                            statement = String.format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName, name);
+                            statement = String
+                                    .format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName,
+                                            name);
                         }
                         else {
                             requiredTypeNameParameter = ClassName.get(listTypeMirror);
-                            statement = String.format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable", name);
+                            statement = String
+                                    .format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable",
+                                            name);
                         }
                     }
 
@@ -447,10 +466,12 @@ public class RouterProcessor extends AbstractProcessor {
                 methodBuilder.returns(ClassName.get(typeElement));
                 if (isFragmentV4) {
                     methodBuilder.addStatement("return super.createV4(" + className + ".class)");
-                } else {
+                }
+                else {
                     methodBuilder.addStatement("return super.create(" + className + ".class)");
                 }
-            } else {
+            }
+            else {
                 methodBuilder.returns(typeClassIntent)
                         .addParameter(typeClassContext, "context")
                         .addStatement("return super.create(context, " + className + ".class)");
@@ -500,7 +521,8 @@ public class RouterProcessor extends AbstractProcessor {
         }
     }
 
-    private void createExtrasBindingClass(TypeElement enclosingTypeElement, Map<Element, Extra> enclosingExtras) throws IOException {
+    private void createExtrasBindingClass(TypeElement enclosingTypeElement, Map<Element, Extra> enclosingExtras)
+            throws IOException {
         DeclaredType parentEnclosingDeclareType = (DeclaredType) enclosingTypeElement.getSuperclass();
         String enclosingSimpleName = enclosingTypeElement.getSimpleName().toString();
         String enclosingPackageName = elements.getPackageOf(enclosingTypeElement).getQualifiedName().toString();
@@ -527,7 +549,8 @@ public class RouterProcessor extends AbstractProcessor {
 
         if (binderSuperClassName == typeClassExtrasBinding) {
             binderConstructorBuilder.addStatement("super(bundle, optionals)");
-        } else {
+        }
+        else {
             binderConstructorBuilder.addStatement("super(target, bundle, optionals)");
         }
 
@@ -552,8 +575,11 @@ public class RouterProcessor extends AbstractProcessor {
                 String statement = String
                         .format(bundleGetStatement, extra.key(), "target." + name, stringTypeName + ".class");
 
-                binderConstructorBuilder
-                        .addStatement("target." + name + " = (" + typeName + ") " + statement);
+                binderConstructorBuilder.addCode("try {");
+                binderConstructorBuilder.addStatement("target." + name + " = (" + typeName + ") " + statement);
+                binderConstructorBuilder.addCode("} catch (Exception e) {");
+                binderConstructorBuilder.addStatement("e.printStackTrace()");
+                binderConstructorBuilder.addCode("}");
             }
         }
 
