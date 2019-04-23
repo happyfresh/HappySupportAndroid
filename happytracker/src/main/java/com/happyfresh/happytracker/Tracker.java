@@ -131,6 +131,7 @@ public class Tracker {
         Map<String, Properties> saveProperties = sSaveProperties.get(adapter.getClass().getName());
         if (saveProperties == null) {
             saveProperties = new HashMap<>();
+            sSaveProperties.put(adapter.getClass().getName(), saveProperties);
         }
 
         saveProperties.put(event, properties);
