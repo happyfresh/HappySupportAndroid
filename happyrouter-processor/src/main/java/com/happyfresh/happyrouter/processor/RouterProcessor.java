@@ -145,7 +145,7 @@ public class RouterProcessor extends AbstractProcessor {
             createExtrasBindingClass();
         } catch (Exception e) {
             e.printStackTrace();
-            messager.printMessage(Diagnostic.Kind.WARNING, e.getMessage());
+            messager.printMessage(Diagnostic.Kind.NOTE, e.getMessage());
         }
 
         return true;
@@ -373,9 +373,12 @@ public class RouterProcessor extends AbstractProcessor {
             /*
              * 6- Create Constructor
              */
+            ClassName returnStaticNewInstanceClassName = ClassName.get(classPackageName, className + ROUTER_CLASS_SUFFIX);
             TypeElement requiredParentTypeElement = parentTypeElement;
             MethodSpec.Builder routerConstructorBuilder = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
+            MethodSpec.Builder routerStaticNewInstanceBuilder = MethodSpec.methodBuilder("newInstance").addModifiers(Modifier.STATIC, Modifier.PUBLIC).returns(returnStaticNewInstanceClassName);
             String superStatement = "super(";
+            String newInstanceStatement = "return new " + className + ROUTER_CLASS_SUFFIX + "(";
 
             while (requiredClassWithParents.containsKey(requiredParentTypeElement)) {
                 Map<Element, TypeMirror> requiredParentFields = requiredClassWithFields.get(parentTypeElement);
@@ -391,8 +394,10 @@ public class RouterProcessor extends AbstractProcessor {
                         TypeName requiredTypeNameParameter = getTypeNameParameter(requiredTypeMirror);
 
                         routerConstructorBuilder.addParameter(requiredTypeNameParameter, name);
+                        routerStaticNewInstanceBuilder.addParameter(requiredTypeNameParameter, name);
 
                         superStatement = superStatement.concat(name).concat(", ");
+                        newInstanceStatement = newInstanceStatement.concat(name).concat(", ");
                     }
                 }
 
@@ -450,10 +455,19 @@ public class RouterProcessor extends AbstractProcessor {
 
                     routerConstructorBuilder.addParameter(requiredTypeNameParameter, name)
                             .addStatement(statement);
+                    routerStaticNewInstanceBuilder.addParameter(requiredTypeNameParameter, name);
+                    newInstanceStatement = newInstanceStatement.concat(name).concat(", ");
                 }
             }
 
+            if (newInstanceStatement.charAt(newInstanceStatement.length() - 1) != '(') {
+                newInstanceStatement = newInstanceStatement.substring(0, newInstanceStatement.length() - 2);
+            }
+            newInstanceStatement = newInstanceStatement.concat(")");
+            routerStaticNewInstanceBuilder.addStatement(newInstanceStatement);
+
             routerClassBuilder.addMethod(routerConstructorBuilder.build());
+            routerClassBuilder.addMethod(routerStaticNewInstanceBuilder.build());
 
             /*
              * 7- Create Method create intent
