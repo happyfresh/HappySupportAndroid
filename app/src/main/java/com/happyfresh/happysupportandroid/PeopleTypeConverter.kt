@@ -9,4 +9,8 @@ class PeopleTypeConverter : TypeConverter<People, Parcelable>() {
     override fun getOriginalValue(extraValue: Parcelable?): People {
         return Parcels.unwrap<People>(extraValue)
     }
+
+    override fun getExtraValue(originalValue: People?): Parcelable {
+        return Parcels.wrap(originalValue)
+    }
 }

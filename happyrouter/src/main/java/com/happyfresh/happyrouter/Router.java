@@ -13,13 +13,13 @@ public class Router {
 
     private static List<Class<? extends TypeConverter>> typeConverters;
 
-    public static <T> void bind(T target, Bundle bundle, Bundle... optionals) {
+    public static <T, E extends ExtrasBinding> E bind(T target, Bundle bundle, Bundle... optionals) {
         Class<?> targetClass = target.getClass();
         String targetName = targetClass.getName();
         try {
             Class<?> bindingClass = target.getClass().getClassLoader().loadClass(targetName + "_ExtrasBinding");
             Constructor<?> constructor = bindingClass.getConstructor(targetClass, Bundle.class, Bundle[].class);
-            constructor.newInstance(target, bundle, optionals);
+            return (E) constructor.newInstance(target, bundle, optionals);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
@@ -31,6 +31,7 @@ public class Router {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public static void addTypeConverter(Class<? extends TypeConverter> classTypeConverter) {

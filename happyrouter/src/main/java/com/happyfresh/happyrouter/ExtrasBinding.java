@@ -13,6 +13,19 @@ public class ExtrasBinding {
         this.optionals = optionals;
     }
 
+    public <T> void onSaveInstanceState(T target, Bundle outState) {
+
+    }
+
+    protected <T> T getTypeConverterExtraValue(Object value, Class<?> targetClass) {
+        TypeConverter typeConverter = Router.getTypeConverter(targetClass);
+        if (typeConverter != null) {
+            return (T) typeConverter.getExtraValue(value);
+        }
+
+        return (T) value;
+    }
+
     protected Object get(String key, Object defaultValue, Class<?> targetClass) {
         Object result = get(key, bundle, -1);
 
