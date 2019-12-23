@@ -326,7 +326,7 @@ public class RouterProcessor extends AbstractProcessor {
          */
         for (String key : extraKeys) {
             FieldSpec.Builder fieldSpecBuilder = FieldSpec
-                    .builder(String.class, ROUTER_CONFIG_EXTRAS_PREFIX + key.toUpperCase(), Modifier.FINAL,
+                    .builder(String.class, ROUTER_CONFIG_EXTRAS_PREFIX + key, Modifier.FINAL,
                              Modifier.STATIC, Modifier.PUBLIC);
             fieldSpecBuilder = fieldSpecBuilder.initializer("\"" + key + "\"");
             routerConfigClassBuilder.addField(fieldSpecBuilder.build());
@@ -664,6 +664,31 @@ public class RouterProcessor extends AbstractProcessor {
                 TypeName typeName = ClassName.get(typeMirror);
                 String name = element.getSimpleName().toString();
                 Extra extra = enclosingExtras.get(element);
+                String stringTypeName = typeName.toString();
+
+                if (types.isAssignable(typeMirror, listTypeMirror)) {
+                    int idx1 = stringTypeName.indexOf("<");
+                    stringTypeName = stringTypeName.substring(0, idx1);
+                }
+
+                String statement = String
+                        .format(bundleGetStatement, extra.key(), "target." + name, stringTypeName + ".class");
+
+                binderConstructorBuilder.addCode("try {");
+                binderConstructorBuilder.addStatement("target." + name + " = (" + typeName + ") " + statement);
+                binderConstructorBuilder.addCode("} catch (Exception e) {");
+                binderConstructorBuilder.addStatement("e.printStackTrace()");
+                binderConstructorBuilder.addCode("}");
+            }
+        }
+        fields = classWithSaveFields.get(enclosingTypeElement);
+        if (fields != null) {
+            for (Map.Entry<Element, TypeMirror> entry : fields.entrySet()) {
+                Element element = entry.getKey();
+                TypeMirror typeMirror = entry.getValue();
+                TypeName typeName = ClassName.get(typeMirror);
+                String name = element.getSimpleName().toString();
+                SaveExtra extra = enclosingSaveExtras.get(element);
                 String stringTypeName = typeName.toString();
 
                 if (types.isAssignable(typeMirror, listTypeMirror)) {

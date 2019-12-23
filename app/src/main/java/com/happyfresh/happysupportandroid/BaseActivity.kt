@@ -16,6 +16,10 @@ open class BaseActivity : AppCompatActivity() {
     @Extra(key = "people")
     internal var people: People? = null
 
+    @JvmField
+    @SaveExtra(key = "ABC")
+    internal var abc: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
