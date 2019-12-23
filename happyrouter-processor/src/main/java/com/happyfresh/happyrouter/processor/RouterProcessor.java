@@ -3,8 +3,10 @@ package com.happyfresh.happyrouter.processor;
 import com.google.common.collect.ImmutableSet;
 import com.happyfresh.happyrouter.annotations.Extra;
 import com.happyfresh.happyrouter.annotations.Route;
+import com.happyfresh.happyrouter.annotations.SaveExtra;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
@@ -13,6 +15,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -41,6 +44,8 @@ public class RouterProcessor extends AbstractProcessor {
 
     private static final String BINDER_CLASS_SUFFIX = "_ExtrasBinding";
 
+    private static final String ROUTER_CONFIG_EXTRAS_PREFIX = "EXTRAS_";
+
     private static final ClassName typeClassContext = ClassName.get("android.content", "Context");
 
     private static final ClassName typeClassIntent = ClassName.get("android.content", "Intent");
@@ -49,6 +54,8 @@ public class RouterProcessor extends AbstractProcessor {
 
     private static final ClassName typeClassBaseRouter = ClassName.get("com.happyfresh.happyrouter", "BaseRouter");
 
+    private static final ClassName typeClassRouterConfig = ClassName.get("com.happyfresh.happyrouter", "RouterConfig");
+
     private static final ClassName typeClassBaseFragmentRouter = ClassName
             .get("com.happyfresh.happyrouter", "BaseFragmentRouter");
 
@@ -56,8 +63,6 @@ public class RouterProcessor extends AbstractProcessor {
             .get("com.happyfresh.happyrouter", "ExtrasBinding");
 
     private static final ClassName typeClassParcelable = ClassName.get("android.os", "Parcelable");
-
-    private static final ClassName typeClassException = ClassName.get("java.lang", "Exception");
 
     private static final String bundlePutStatement = "intent.putExtra(\"%1$s\", %2$s)";
 
@@ -79,11 +84,17 @@ public class RouterProcessor extends AbstractProcessor {
 
     private Types types;
 
+    private Set<String> extraKeys;
+
     private Map<TypeElement, TypeElement> classWithParents;
 
     private Map<TypeElement, Map<Element, TypeMirror>> classWithFields;
 
+    private Map<TypeElement, Map<Element, TypeMirror>> classWithSaveFields;
+
     private Map<TypeElement, Map<Element, Extra>> classWithExtras;
+
+    private Map<TypeElement, Map<Element, SaveExtra>> classWithSaveExtras;
 
     private Map<TypeElement, TypeElement> requiredClassWithParents;
 
@@ -112,8 +123,11 @@ public class RouterProcessor extends AbstractProcessor {
         messager = processingEnvironment.getMessager();
         elements = processingEnvironment.getElementUtils();
         types = processingEnvironment.getTypeUtils();
+        extraKeys = new HashSet<>();
         classWithFields = new HashMap<>();
+        classWithSaveFields = new HashMap<>();
         classWithExtras = new HashMap<>();
+        classWithSaveExtras = new HashMap<>();
         classWithParents = new HashMap<>();
         requiredClassWithParents = new HashMap<>();
         requiredClassWithFields = new HashMap<>();
@@ -141,6 +155,7 @@ public class RouterProcessor extends AbstractProcessor {
 
         try {
             mapAllAnnotatedElement(roundEnvironment);
+            createRouterConfigClass();
             createRouterClass();
             createExtrasBindingClass();
         } catch (Exception e) {
@@ -193,6 +208,8 @@ public class RouterProcessor extends AbstractProcessor {
             TypeMirror typeMirror = element.asType();
             Extra extra = element.getAnnotation(Extra.class);
 
+            extraKeys.add(extra.key());
+
             /*
              * 2.1- Map class with field
              */
@@ -231,6 +248,41 @@ public class RouterProcessor extends AbstractProcessor {
         }
 
         /*
+         * 2- Find SaveExtra annotations
+         */
+        for (Element element : roundEnvironment.getElementsAnnotatedWith(SaveExtra.class)) {
+            if (element.getKind() != ElementKind.FIELD) {
+                throw new Exception("Can be applied to field.");
+            }
+
+            TypeElement typeElement = (TypeElement) element.getEnclosingElement();
+            TypeMirror typeMirror = element.asType();
+            SaveExtra extra = element.getAnnotation(SaveExtra.class);
+
+            extraKeys.add(extra.key());
+
+            /*
+             * 2.1- Map class with field
+             */
+            Map<Element, TypeMirror> fields = classWithSaveFields.get(typeElement);
+            if (fields == null) {
+                fields = new HashMap<>();
+            }
+            fields.put(element, typeMirror);
+            classWithSaveFields.put(typeElement, fields);
+
+            /*
+             * 2.2- Map class with extra annotation
+             */
+            Map<Element, SaveExtra> extras = classWithSaveExtras.get(typeElement);
+            if (extras == null) {
+                extras = new HashMap<>();
+            }
+            extras.put(element, extra);
+            classWithSaveExtras.put(typeElement, extras);
+        }
+
+        /*
          * 3- Finalize required mapping
          */
         for (Map.Entry<TypeElement, TypeElement> entry : classWithParents.entrySet()) {
@@ -259,6 +311,31 @@ public class RouterProcessor extends AbstractProcessor {
         }
 
         return false;
+    }
+
+    private void createRouterConfigClass() throws IOException {
+        /*
+         * 1- Create RouterConfig class builder
+         */
+        TypeSpec.Builder routerConfigClassBuilder = TypeSpec
+                .classBuilder(typeClassRouterConfig)
+                .addModifiers(Modifier.PUBLIC);
+
+        /*
+         * 2- Add extra keys
+         */
+        for (String key : extraKeys) {
+            FieldSpec.Builder fieldSpecBuilder = FieldSpec
+                    .builder(String.class, ROUTER_CONFIG_EXTRAS_PREFIX + key.toUpperCase(), Modifier.FINAL,
+                             Modifier.STATIC, Modifier.PUBLIC);
+            fieldSpecBuilder = fieldSpecBuilder.initializer("\"" + key + "\"");
+            routerConfigClassBuilder.addField(fieldSpecBuilder.build());
+        }
+
+        /*
+         * 3- Write generated class to a file
+         */
+        JavaFile.builder(typeClassRouterConfig.packageName(), routerConfigClassBuilder.build()).build().writeTo(filer);
     }
 
     private void createRouterClass() throws IOException {
@@ -373,10 +450,12 @@ public class RouterProcessor extends AbstractProcessor {
             /*
              * 6- Create Constructor
              */
-            ClassName returnStaticNewInstanceClassName = ClassName.get(classPackageName, className + ROUTER_CLASS_SUFFIX);
+            ClassName returnStaticNewInstanceClassName = ClassName
+                    .get(classPackageName, className + ROUTER_CLASS_SUFFIX);
             TypeElement requiredParentTypeElement = parentTypeElement;
             MethodSpec.Builder routerConstructorBuilder = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
-            MethodSpec.Builder routerStaticNewInstanceBuilder = MethodSpec.methodBuilder("newInstance").addModifiers(Modifier.STATIC, Modifier.PUBLIC).returns(returnStaticNewInstanceClassName);
+            MethodSpec.Builder routerStaticNewInstanceBuilder = MethodSpec.methodBuilder("newInstance")
+                    .addModifiers(Modifier.STATIC, Modifier.PUBLIC).returns(returnStaticNewInstanceClassName);
             String superStatement = "super(";
             String newInstanceStatement = "return new " + className + ROUTER_CLASS_SUFFIX + "(";
 
@@ -519,23 +598,25 @@ public class RouterProcessor extends AbstractProcessor {
         for (Map.Entry<TypeElement, TypeElement> enclosingElement : classWithParents.entrySet()) {
             TypeElement enclosingTypeElement = enclosingElement.getKey();
             Map<Element, Extra> enclosingExtras = classWithExtras.get(enclosingTypeElement);
+            Map<Element, SaveExtra> enclosingSaveExtras = classWithSaveExtras.get(enclosingTypeElement);
 
-            createExtrasBindingClass(enclosingTypeElement, enclosingExtras);
+            createExtrasBindingClass(enclosingTypeElement, enclosingExtras, enclosingSaveExtras);
         }
 
         for (Map.Entry<TypeElement, Map<Element, Extra>> enclosingElement : classWithExtras.entrySet()) {
             TypeElement enclosingTypeElement = enclosingElement.getKey();
             Map<Element, Extra> enclosingExtras = enclosingElement.getValue();
+            Map<Element, SaveExtra> enclosingSaveExtras = classWithSaveExtras.get(enclosingTypeElement);
 
             if (classWithParents.containsKey(enclosingTypeElement)) {
                 continue;
             }
 
-            createExtrasBindingClass(enclosingTypeElement, enclosingExtras);
+            createExtrasBindingClass(enclosingTypeElement, enclosingExtras, enclosingSaveExtras);
         }
     }
 
-    private void createExtrasBindingClass(TypeElement enclosingTypeElement, Map<Element, Extra> enclosingExtras)
+    private void createExtrasBindingClass(TypeElement enclosingTypeElement, Map<Element, Extra> enclosingExtras, Map<Element, SaveExtra> enclosingSaveExtras)
             throws IOException {
         DeclaredType parentEnclosingDeclareType = (DeclaredType) enclosingTypeElement.getSuperclass();
         String enclosingSimpleName = enclosingTypeElement.getSimpleName().toString();
@@ -560,6 +641,10 @@ public class RouterProcessor extends AbstractProcessor {
                 .addParameter(typeClassBundle, "bundle")
                 .addParameter(ArrayTypeName.of(typeClassBundle), "optionals")
                 .varargs(true);
+        MethodSpec.Builder onSaveInstanceStateMethodSpecBuilder = MethodSpec.methodBuilder("onSaveInstanceState")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ClassName.get(enclosingTypeElement), "target")
+                .addParameter(typeClassBundle, "outState");
 
         if (binderSuperClassName == typeClassExtrasBinding) {
             binderConstructorBuilder.addStatement("super(bundle, optionals)");
@@ -603,7 +688,75 @@ public class RouterProcessor extends AbstractProcessor {
         binderClassBuilder.addMethod(binderConstructorBuilder.build());
 
         /*
-         * 3- Write generated class to a file
+         * 3- Create Save instance
+         */
+        fields = classWithSaveFields.get(enclosingTypeElement);
+        if (fields != null) {
+            if (binderSuperClassName == typeClassExtrasBinding) {
+                onSaveInstanceStateMethodSpecBuilder.addStatement("super.onSaveInstanceState(outState)");
+            }
+            else {
+                onSaveInstanceStateMethodSpecBuilder.addStatement("super.onSaveInstanceState(target, outState)");
+            }
+            onSaveInstanceStateMethodSpecBuilder.addCode("try {");
+            onSaveInstanceStateMethodSpecBuilder.addStatement("android.content.Intent intent = new android.content.Intent()");
+            for (Map.Entry<Element, TypeMirror> entry : fields.entrySet()) {
+                Element element = entry.getKey();
+                TypeMirror typeMirror = entry.getValue();
+                TypeName typeName = ClassName.get(typeMirror);
+                String name = element.getSimpleName().toString();
+                SaveExtra extra = enclosingSaveExtras.get(element);
+                String stringTypeName = typeName.toString();
+
+                if (types.isAssignable(typeMirror, listTypeMirror)) {
+                    int idx1 = stringTypeName.indexOf("<");
+                    stringTypeName = stringTypeName.substring(0, idx1);
+                }
+
+                String statement = String.format(bundlePutStatement, extra.key(), "target." + name);
+                TypeName typeNameParameter = getTypeNameParameter(typeMirror);
+                if (types.isAssignable(typeMirror, listTypeMirror)) {
+                    stringTypeName = ClassName.get(typeMirror).toString();
+                    int idx1 = stringTypeName.indexOf("<") + 1;
+                    int idx2 = stringTypeName.indexOf(">");
+                    String stringGenericTypeName = stringTypeName.substring(idx1, idx2).replace("? extends ", "");
+                    TypeMirror genericTypeMirror = elements.getTypeElement(stringGenericTypeName).asType();
+                    if (types.isAssignable(genericTypeMirror, integerTypeMirror)) {
+                        statement = String
+                                .format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName,
+                                        "target." + name);
+                    }
+                    else if (types.isAssignable(genericTypeMirror, stringTypeMirror)) {
+                        statement = String
+                                .format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName,
+                                        "target." + name);
+                    }
+                    else if (types.isAssignable(genericTypeMirror, charSequenceTypeMirror)) {
+                        statement = String
+                                .format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName,
+                                        "target." + name);
+                    }
+                    else {
+                        statement = String
+                                .format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable",
+                                        "target." + name);
+                    }
+                }
+                else if (typeNameParameter.equals(typeClassParcelable)) {
+                    statement = "intent.putExtra(\"" + extra.key() + "\", (android.os.Parcelable) getTypeConverterExtraValue(target." + name + ", " + stringTypeName + ".class))";
+                }
+
+                onSaveInstanceStateMethodSpecBuilder.addStatement(statement);
+            }
+            onSaveInstanceStateMethodSpecBuilder.addStatement("outState.putAll(intent.getExtras())");
+            onSaveInstanceStateMethodSpecBuilder.addCode("} catch (Exception e) {");
+            onSaveInstanceStateMethodSpecBuilder.addStatement("e.printStackTrace()");
+            onSaveInstanceStateMethodSpecBuilder.addCode("}");
+            binderClassBuilder.addMethod(onSaveInstanceStateMethodSpecBuilder.build());
+        }
+
+        /*
+         * 4- Write generated class to a file
          */
         JavaFile.builder(enclosingPackageName, binderClassBuilder.build()).build().writeTo(filer);
     }
