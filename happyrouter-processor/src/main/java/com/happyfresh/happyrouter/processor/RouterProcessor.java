@@ -717,12 +717,7 @@ public class RouterProcessor extends AbstractProcessor {
          */
         fields = classWithSaveFields.get(enclosingTypeElement);
         if (fields != null) {
-            if (binderSuperClassName == typeClassExtrasBinding) {
-                onSaveInstanceStateMethodSpecBuilder.addStatement("super.onSaveInstanceState(outState)");
-            }
-            else {
-                onSaveInstanceStateMethodSpecBuilder.addStatement("super.onSaveInstanceState(target, outState)");
-            }
+            onSaveInstanceStateMethodSpecBuilder.addStatement("super.onSaveInstanceState(target, outState)");
             onSaveInstanceStateMethodSpecBuilder.addCode("try {");
             onSaveInstanceStateMethodSpecBuilder.addStatement("android.content.Intent intent = new android.content.Intent()");
             for (Map.Entry<Element, TypeMirror> entry : fields.entrySet()) {

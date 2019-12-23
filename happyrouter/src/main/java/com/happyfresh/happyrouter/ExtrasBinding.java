@@ -13,7 +13,7 @@ public class ExtrasBinding {
         this.optionals = optionals;
     }
 
-    public void onSaveInstanceState(Bundle outState) {
+    public <T> void onSaveInstanceState(T target, Bundle outState) {
 
     }
 
