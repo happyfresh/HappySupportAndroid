@@ -56,6 +56,8 @@ public class RouterProcessor extends AbstractProcessor {
 
     private static final ClassName typeClassRouterConfig = ClassName.get("com.happyfresh.happyrouter", "RouterConfig");
 
+    private static final ClassName typeClassObject = ClassName.get("java.lang", "Object");
+
     private static final ClassName typeClassBaseFragmentRouter = ClassName
             .get("com.happyfresh.happyrouter", "BaseFragmentRouter");
 
@@ -643,7 +645,7 @@ public class RouterProcessor extends AbstractProcessor {
                 .varargs(true);
         MethodSpec.Builder onSaveInstanceStateMethodSpecBuilder = MethodSpec.methodBuilder("onSaveInstanceState")
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(ClassName.get(enclosingTypeElement), "target")
+                .addParameter(typeClassObject, "target")
                 .addParameter(typeClassBundle, "outState");
 
         if (binderSuperClassName == typeClassExtrasBinding) {
@@ -733,7 +735,8 @@ public class RouterProcessor extends AbstractProcessor {
                     stringTypeName = stringTypeName.substring(0, idx1);
                 }
 
-                String statement = String.format(bundlePutStatement, extra.key(), "target." + name);
+                String target = "((" + enclosingTypeElement.getQualifiedName() + ") target).";
+                String statement = String.format(bundlePutStatement, extra.key(), target + name);
                 TypeName typeNameParameter = getTypeNameParameter(typeMirror);
                 if (types.isAssignable(typeMirror, listTypeMirror)) {
                     stringTypeName = ClassName.get(typeMirror).toString();
@@ -744,26 +747,26 @@ public class RouterProcessor extends AbstractProcessor {
                     if (types.isAssignable(genericTypeMirror, integerTypeMirror)) {
                         statement = String
                                 .format(bundlePutIntegerArrayListStatement, extra.key(), stringGenericTypeName,
-                                        "target." + name);
+                                        target + name);
                     }
                     else if (types.isAssignable(genericTypeMirror, stringTypeMirror)) {
                         statement = String
                                 .format(bundlePutStringArrayListStatement, extra.key(), stringGenericTypeName,
-                                        "target." + name);
+                                        target + name);
                     }
                     else if (types.isAssignable(genericTypeMirror, charSequenceTypeMirror)) {
                         statement = String
                                 .format(bundlePutCharSequenceArrayListStatement, extra.key(), stringGenericTypeName,
-                                        "target." + name);
+                                        target + name);
                     }
                     else {
                         statement = String
                                 .format(bundlePutParcelableArrayListStatement, extra.key(), "android.os.Parcelable",
-                                        "target." + name);
+                                        target + name);
                     }
                 }
                 else if (typeNameParameter.equals(typeClassParcelable)) {
-                    statement = "intent.putExtra(\"" + extra.key() + "\", (android.os.Parcelable) getTypeConverterExtraValue(target." + name + ", " + stringTypeName + ".class))";
+                    statement = "intent.putExtra(\"" + extra.key() + "\", (android.os.Parcelable) getTypeConverterExtraValue(" + target + name + ", " + stringTypeName + ".class))";
                 }
 
                 onSaveInstanceStateMethodSpecBuilder.addStatement(statement);
