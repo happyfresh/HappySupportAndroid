@@ -59,10 +59,12 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
         Item item = items.get(position);
 
+        viewHolder.items = items;
+        viewHolder.viewType = item.viewType;
+
         if (item.hasAdditionalItems()) {
             try {
-                Method method = viewHolder.getClass()
-                        .getDeclaredMethod("onBindAdditional", item.getAdditionalItemClasses());
+                Method method = viewHolder.getClass().getDeclaredMethod("onBindAdditional", item.getAdditionalItemClasses());
                 method.invoke(viewHolder, item.getAdditionalItems());
             } catch (Exception e) {
                 // Do nothing.
@@ -124,11 +126,15 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.ViewHolder
         }
     }
 
-    public void removeItemByViewType(int viewType) {
-        for (int i = 0; i < this.items.size(); i++) {
-            if (this.items.get(i).getViewType() == viewType) {
-                removeItem(i);
+    // Make sure items already added before
+    public void setAdditionalItems(@LayoutRes int viewType, Object... additionalItems) {
+        for (Item item : items) {
+            if (item.getViewType() == viewType) {
+                item.setAdditionalItems(additionalItems);
             }
+        }
+        if (isAutoNotify) {
+            notifyDataSetChanged();
         }
     }
 
@@ -161,6 +167,23 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.ViewHolder
         }
     }
 
+    public void removeItems(@LayoutRes int viewType) {
+        List<Item> itemsToRemove = new ArrayList<>();
+        for (Item item : items) {
+            if (item.getViewType() == viewType) {
+                itemsToRemove.add(item);
+            }
+        }
+
+        for (Item item : itemsToRemove) {
+            items.remove(item);
+        }
+
+        if (isAutoNotify) {
+            notifyDataSetChanged();
+        }
+    }
+
     public void removeAll() {
         int itemCount = getItemCount();
         this.items.clear();
@@ -179,12 +202,34 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.ViewHolder
 
         protected T item;
 
+        int viewType;
+
+        List<Item> items;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
         }
 
         public void onBind(T item) {
             this.item = item;
+        }
+
+        // This is different from adapter position. itemPosition are position the item by viewType.
+        // It should be use after onBind
+        public int getItemPosition() {
+            int position = -1;
+            for (Item i : items) {
+                if (i.viewType != viewType) {
+                    continue;
+                }
+
+                position++;
+                if (i.item.equals(this.item)) {
+                    return position;
+                }
+            }
+
+            return -1;
         }
     }
 
@@ -225,6 +270,19 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.ViewHolder
 
         public int getViewType() {
             return viewType;
+        }
+
+        public void setAdditionalItems(Object[] additionalItems) {
+            this.additionalItems = additionalItems;
+        }
+
+        public void addAdditionalItems(Object additionalItem) {
+            Object[] objects = new Object[this.additionalItems.length + 1];
+            for (int i = 0; i < this.additionalItems.length; i++) {
+                objects[i] = this.additionalItems[i];
+            }
+            objects[this.additionalItems.length] = additionalItem;
+            this.additionalItems = objects;
         }
 
         public Object[] getAdditionalItems() {
