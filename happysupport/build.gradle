@@ -30,6 +30,15 @@ dependencies {
 
     implementation "com.android.support:appcompat-v7:${android_support_version}"
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:3.3.3'
+    testImplementation('org.powermock:powermock-module-junit4:2.0.7') {
+        exclude module: 'hamcrest-core'
+        exclude module: 'objenesis'
+    }
+    testImplementation('org.powermock:powermock-api-mockito2:2.0.7') {
+        exclude module: 'hamcrest-core'
+        exclude module: 'objenesis'
+    }
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     implementation 'com.android.support:recyclerview-v7:27.1.1'

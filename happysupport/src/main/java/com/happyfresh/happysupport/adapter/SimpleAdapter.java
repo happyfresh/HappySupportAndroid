@@ -29,6 +29,7 @@ public class SimpleAdapter extends RecyclerView.Adapter<SimpleAdapter.ViewHolder
     }
 
     public SimpleAdapter(boolean isAutoNotify) {
+        this();
         this.isAutoNotify = isAutoNotify;
     }
 
