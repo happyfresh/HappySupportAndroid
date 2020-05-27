@@ -27,7 +27,13 @@ public class ExtrasBinding {
     }
 
     protected Object get(String key, Object defaultValue, Class<?> targetClass) {
-        Object result = get(key, bundle, -1);
+        Object result = null;
+        if (bundle != null) {
+            result = get(key, bundle, -1);
+        }
+        else if (optionals != null && optionals.length > 0) {
+            result = get(key, optionals[0], 0);
+        }
 
         if (result == null) {
             return defaultValue;

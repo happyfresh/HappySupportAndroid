@@ -328,7 +328,7 @@ public class RouterProcessor extends AbstractProcessor {
          */
         for (String key : extraKeys) {
             FieldSpec.Builder fieldSpecBuilder = FieldSpec
-                    .builder(String.class, ROUTER_CONFIG_EXTRAS_PREFIX + key, Modifier.FINAL,
+                    .builder(String.class, ROUTER_CONFIG_EXTRAS_PREFIX + key.replace(".", "_"), Modifier.FINAL,
                              Modifier.STATIC, Modifier.PUBLIC);
             fieldSpecBuilder = fieldSpecBuilder.initializer("\"" + key + "\"");
             routerConfigClassBuilder.addField(fieldSpecBuilder.build());
