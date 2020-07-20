@@ -1,7 +1,7 @@
 package com.happyfresh.happysupportandroid
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.happyfresh.happyrouter.ExtrasBinding
 
 import com.happyfresh.happyrouter.Router
@@ -29,7 +29,7 @@ open class BaseActivity : AppCompatActivity() {
         extrasBinding = Router.bind(this, intent.extras, savedInstanceState)
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         extrasBinding?.onSaveInstanceState(this, outState)
     }

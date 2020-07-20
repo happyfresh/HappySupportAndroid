@@ -1,8 +1,8 @@
 package com.happyfresh.happysupportkotlinextentions.helper
 
 import android.content.Context
-import android.support.annotation.ArrayRes
-import android.support.annotation.StringRes
+import androidx.annotation.ArrayRes
+import androidx.annotation.StringRes
 import com.happyfresh.happysupport.helper.StringHelper
 
 fun Context.getStringHelper(@StringRes stringResId: Int, vararg objects: Array<Any>): String {

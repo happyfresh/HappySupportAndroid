@@ -1,8 +1,8 @@
 package com.happyfresh.happytracker;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.happyfresh.happytracker.annotations.Event;
 import com.happyfresh.happytracker.annotations.Identify;

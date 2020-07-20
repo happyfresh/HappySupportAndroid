@@ -1,7 +1,9 @@
 package com.happyfresh.happyrouter;
 
 import android.content.Intent;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 public class BaseFragmentRouter {
 
@@ -26,7 +28,7 @@ public class BaseFragmentRouter {
     }
 
     @Nullable
-    protected <T extends android.support.v4.app.Fragment> T createV4(Class<T> clazz) {
+    protected <T extends Fragment> T createX(Class<T> clazz) {
         try {
             T fragment = clazz.newInstance();
             fragment.setArguments(intent.getExtras());

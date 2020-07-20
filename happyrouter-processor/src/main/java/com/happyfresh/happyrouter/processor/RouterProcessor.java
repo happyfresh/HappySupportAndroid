@@ -104,7 +104,7 @@ public class RouterProcessor extends AbstractProcessor {
 
     private TypeMirror fragmentTypeMirror;
 
-    private TypeMirror fragmentV4TypeMirror;
+    private TypeMirror fragmentXTypeMirror;
 
     private TypeMirror parcelableTypeMirror;
 
@@ -136,8 +136,8 @@ public class RouterProcessor extends AbstractProcessor {
 
         fragmentTypeMirror = types
                 .erasure(elements.getTypeElement("android.app.Fragment").asType());
-        fragmentV4TypeMirror = types
-                .erasure(elements.getTypeElement("android.support.v4.app.Fragment").asType());
+        fragmentXTypeMirror = types
+                .erasure(elements.getTypeElement("androidx.fragment.app.Fragment").asType());
         parcelableTypeMirror = types
                 .erasure(elements.getTypeElement("android.os.Parcelable").asType());
         serializableTypeMirror = types
@@ -355,11 +355,11 @@ public class RouterProcessor extends AbstractProcessor {
              * 2- Check type element is activity or fragment or fragment v4
              */
             boolean isFragment = false;
-            boolean isFragmentV4 = false;
+            boolean isFragmentX = false;
             if (types.isAssignable(typeElement.asType(), fragmentTypeMirror) || types
-                    .isAssignable(typeElement.asType(), fragmentV4TypeMirror)) {
+                    .isAssignable(typeElement.asType(), fragmentXTypeMirror)) {
                 isFragment = true;
-                isFragmentV4 = types.isAssignable(typeElement.asType(), fragmentV4TypeMirror);
+                isFragmentX = types.isAssignable(typeElement.asType(), fragmentXTypeMirror);
             }
 
             /*
@@ -559,8 +559,8 @@ public class RouterProcessor extends AbstractProcessor {
 
             if (isFragment) {
                 methodBuilder.returns(ClassName.get(typeElement));
-                if (isFragmentV4) {
-                    methodBuilder.addStatement("return super.createV4(" + className + ".class)");
+                if (isFragmentX) {
+                    methodBuilder.addStatement("return super.createX(" + className + ".class)");
                 }
                 else {
                     methodBuilder.addStatement("return super.create(" + className + ".class)");

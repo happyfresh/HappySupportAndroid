@@ -61,7 +61,7 @@ open class MainActivity : BaseActivity() {
         list4.add(Parcels.wrap(people))
 
         val people = People().also { it.name = "HappyFresh" }
-        val router = HomeActivityRouter(Parcels.wrap(people), list1, list3, title, "")
+        val router = HomeActivityRouter(Parcels.wrap(people), list1, list3, "", title)
         router.putList2(list2)
         router.putList4(list4)
         startActivity(router.create(this))

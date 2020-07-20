@@ -1,13 +1,14 @@
 package com.happyfresh.happysupport.helper;
 
 import android.content.Context;
-import android.support.annotation.ArrayRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import androidx.annotation.ArrayRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 
 public class StringHelper {
 
@@ -62,14 +63,15 @@ public class StringHelper {
 
     @NonNull
     public static String[] getStringArray(@NonNull Context context, @ArrayRes int stringResId,
-            Object[][]... objects) {
+                                          Object[][]... objects) {
         String[] text = context.getResources().getStringArray(stringResId);
 
         if (text.length > 0) {
             for (int i = 0; i < text.length; i++) {
                 if (objects.length > i) {
                     text[i] = getString(context, text[i], objects[i]);
-                } else {
+                }
+                else {
                     text[i] = getString(context, text[i]);
                 }
             }
