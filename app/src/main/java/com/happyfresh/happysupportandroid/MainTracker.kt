@@ -9,6 +9,6 @@ interface MainTracker {
 
     @Event("ABC")
     fun test(
-            @Property("id", ignoreValues = ["0"]) id:Long
+            @Property("id", optional = true, ignoreValues = ["0"]) id:Long
     )
 }

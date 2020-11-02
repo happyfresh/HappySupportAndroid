@@ -23,7 +23,7 @@ public @interface Property {
     boolean optional() default false;
 
     /*
-
+    This property works only if optional true and value not empty
      */
     String[] ignoreValues() default "";
 

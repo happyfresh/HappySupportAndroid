@@ -209,21 +209,27 @@ public class Tracker {
             }
 
             Object value = args[i];
-            if (property.optional() && value == null) {
-                continue;
-            }
-
-            String[] ignoreValues = property.ignoreValues();
-            if (value != null && ignoreValues.length > 0) {
-                boolean ignore = false;
-                for (String ignoreValue : property.ignoreValues()) {
-                    if (ignoreValue.equals(value.toString())) {
-                        ignore = true;
-                        break;
-                    }
-                }
-                if (ignore) {
+            if (property.optional()) {
+                if (value == null) {
                     continue;
+                }
+
+                String[] ignoreValues = property.ignoreValues();
+                if (ignoreValues.length > 0) {
+                    boolean ignore = false;
+                    for (String ignoreValue : property.ignoreValues()) {
+                        if (ignoreValue.isEmpty()) {
+                            continue;
+                        }
+
+                        if (ignoreValue.equals(value.toString())) {
+                            ignore = true;
+                            break;
+                        }
+                    }
+                    if (ignore) {
+                        continue;
+                    }
                 }
             }
 
