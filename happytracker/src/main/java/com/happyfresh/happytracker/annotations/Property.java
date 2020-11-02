@@ -23,6 +23,11 @@ public @interface Property {
     boolean optional() default false;
 
     /*
+
+     */
+    String[] ignoreValues() default "";
+
+    /*
     If property is overwrite then existing property will be replace
      */
     boolean overwrite() default true;

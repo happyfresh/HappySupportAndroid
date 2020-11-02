@@ -208,8 +208,23 @@ public class Tracker {
                 throw new Throwable("There are argument does not have annotation Property");
             }
 
-            if (property.optional() && args[i] == null) {
+            Object value = args[i];
+            if (property.optional() && value == null) {
                 continue;
+            }
+
+            String[] ignoreValues = property.ignoreValues();
+            if (value != null && ignoreValues.length > 0) {
+                boolean ignore = false;
+                for (String ignoreValue : property.ignoreValues()) {
+                    if (ignoreValue.equals(value.toString())) {
+                        ignore = true;
+                        break;
+                    }
+                }
+                if (ignore) {
+                    continue;
+                }
             }
 
             for (String key : property.value()) {
@@ -217,7 +232,7 @@ public class Tracker {
                     properties.put(key, saveProperties.get(key));
                     saveProperties.remove(key);
                 } else {
-                    properties.put(key, args[i]);
+                    properties.put(key, value);
                 }
             }
         }

@@ -37,7 +37,7 @@ open class MainActivity : BaseActivity() {
         tvWelcome1.text = Html.fromHtml(welcome[0])
         tvWelcome2.text = Html.fromHtml(welcome[1])
 
-        Tracker.create(this, MainTracker::class.java).test()
+        Tracker.create(this, MainTracker::class.java).test(1)
 
         tvHallo.setOnClickListener {
             openHomeScreen(tvHallo.text.toString())
