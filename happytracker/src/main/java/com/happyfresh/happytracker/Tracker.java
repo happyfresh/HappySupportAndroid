@@ -110,9 +110,14 @@ public class Tracker {
             Object... args)
             throws Throwable {
         String event = savePropertiesAnnotation.value();
-        Properties properties;
+        Properties properties = getSaveProperties(adapter.getClass(), event);
+
+        if (properties == null) {
+            properties = new Properties();
+        }
+
         if (args.length == 1 && args[0] instanceof Properties) {
-            properties = (Properties) args[0];
+            properties.putAll((Properties) args[0]);
         }
         else {
             Annotation[][] annotations = method.getParameterAnnotations();
@@ -121,7 +126,7 @@ public class Tracker {
                 throw new Throwable("There are argument does not have annotation Property");
             }
 
-            properties = createProperties(getSaveProperties(adapter.getClass(), event), annotations, args);
+            properties = createProperties(properties, annotations, args);
         }
 
         if (sSaveProperties == null) {
@@ -164,14 +169,20 @@ public class Tracker {
     private static <T extends Adapter> void doEvent(T adapter, Event eventAnnotation, Method method, Object... args)
             throws Throwable {
         String event = eventAnnotation.value().isEmpty() ? method.getName() : eventAnnotation.value();
+        Properties properties = getSaveProperties(adapter.getClass(), event);
+
+        if (properties == null) {
+            properties = new Properties();
+        }
 
         if (args == null || args.length == 0) {
-            adapter.onEvent(event, new Properties());
+            adapter.onEvent(event, properties);
             return;
         }
 
         if (args.length == 1 && args[0] instanceof Properties) {
-            adapter.onEvent(event, (Properties) args[0]);
+            properties.putAll((Properties) args[0]);
+            adapter.onEvent(event, properties);
             return;
         }
 
@@ -181,7 +192,7 @@ public class Tracker {
             throw new Throwable("There are argument does not have annotation Property");
         }
 
-        Properties properties = createProperties(getSaveProperties(adapter.getClass(), event), annotations, args);
+        properties = createProperties(properties, annotations, args);
 
         adapter.onEvent(event, properties);
     }
@@ -215,9 +226,12 @@ public class Tracker {
             for (String key : property.value()) {
                 if (saveProperties != null && saveProperties.containsKey(key) && !property.overwrite()) {
                     properties.put(key, saveProperties.get(key));
-                    saveProperties.remove(key);
                 } else {
                     properties.put(key, args[i]);
+                }
+
+                if (saveProperties != null && saveProperties.containsKey(key)) {
+                    saveProperties.remove(key);
                 }
             }
         }
