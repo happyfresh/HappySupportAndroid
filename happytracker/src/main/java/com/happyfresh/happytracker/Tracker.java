@@ -169,10 +169,12 @@ public class Tracker {
     private static <T extends Adapter> void doEvent(T adapter, Event eventAnnotation, Method method, Object... args)
             throws Throwable {
         String event = eventAnnotation.value().isEmpty() ? method.getName() : eventAnnotation.value();
-        Properties properties = getSaveProperties(adapter.getClass(), event);
+        Properties properties = new Properties();
+        Properties saveProperties = getSaveProperties(adapter.getClass(), event);
 
-        if (properties == null) {
-            properties = new Properties();
+        if (saveProperties != null) {
+            properties.putAll(saveProperties);
+            saveProperties.clear();
         }
 
         if (args == null || args.length == 0) {

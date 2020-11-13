@@ -39,6 +39,7 @@ open class MainActivity : BaseActivity() {
 
         Tracker.create(this, MainTracker::class.java).testSaveProperties("XYZ")
         Tracker.create(this, MainTracker::class.java).test()
+        Tracker.create(this, MainTracker::class.java).test()
 
         tvHallo.setOnClickListener {
             openHomeScreen(tvHallo.text.toString())
