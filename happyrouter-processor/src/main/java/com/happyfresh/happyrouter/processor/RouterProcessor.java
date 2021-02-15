@@ -458,33 +458,12 @@ public class RouterProcessor extends AbstractProcessor {
             MethodSpec.Builder routerConstructorBuilder = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
             MethodSpec.Builder routerStaticNewInstanceBuilder = MethodSpec.methodBuilder("newInstance")
                     .addModifiers(Modifier.STATIC, Modifier.PUBLIC).returns(returnStaticNewInstanceClassName);
-            String superStatement = "super(";
-            String newInstanceStatement = "return new " + className + ROUTER_CLASS_SUFFIX + "(";
+            StringBuilder superStatementBuilder = new StringBuilder("super(");
+            StringBuilder newInstanceStatementBuilder = new StringBuilder("return new " + className + ROUTER_CLASS_SUFFIX + "(");
 
-            while (requiredClassWithParents.containsKey(requiredParentTypeElement)) {
-                Map<Element, TypeMirror> requiredParentFields = requiredClassWithFields.get(parentTypeElement);
-                if (requiredParentFields != null && !requiredParentFields.isEmpty()) {
-                    TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(
-                            Comparator.comparing(e -> e.getSimpleName().toString()));
-                    treeMap.putAll(requiredParentFields);
-                    for (Map.Entry<Element, TypeMirror> entry : treeMap.entrySet()) {
-                        Element requiredElement = entry.getKey();
-                        TypeMirror requiredTypeMirror = entry.getValue();
-                        String name = requiredElement.getSimpleName().toString();
+            initRouterConstructor(requiredParentTypeElement, routerConstructorBuilder, routerStaticNewInstanceBuilder, superStatementBuilder, newInstanceStatementBuilder);
 
-                        TypeName requiredTypeNameParameter = getTypeNameParameter(requiredTypeMirror);
-
-                        routerConstructorBuilder.addParameter(requiredTypeNameParameter, name);
-                        routerStaticNewInstanceBuilder.addParameter(requiredTypeNameParameter, name);
-
-                        superStatement = superStatement.concat(name).concat(", ");
-                        newInstanceStatement = newInstanceStatement.concat(name).concat(", ");
-                    }
-                }
-
-                requiredParentTypeElement = requiredClassWithParents.get(requiredParentTypeElement);
-            }
-
+            String superStatement = superStatementBuilder.toString();
             if (superStatement.charAt(superStatement.length() - 1) != '(') {
                 superStatement = superStatement.substring(0, superStatement.length() - 2);
             }
@@ -537,10 +516,11 @@ public class RouterProcessor extends AbstractProcessor {
                     routerConstructorBuilder.addParameter(requiredTypeNameParameter, name)
                             .addStatement(statement);
                     routerStaticNewInstanceBuilder.addParameter(requiredTypeNameParameter, name);
-                    newInstanceStatement = newInstanceStatement.concat(name).concat(", ");
+                    newInstanceStatementBuilder.append(name).append(", ");
                 }
             }
 
+            String newInstanceStatement = newInstanceStatementBuilder.toString();
             if (newInstanceStatement.charAt(newInstanceStatement.length() - 1) != '(') {
                 newInstanceStatement = newInstanceStatement.substring(0, newInstanceStatement.length() - 2);
             }
@@ -578,6 +558,36 @@ public class RouterProcessor extends AbstractProcessor {
              * 8- Write generated class to a file
              */
             JavaFile.builder(classPackageName, routerClassBuilder.build()).build().writeTo(filer);
+        }
+    }
+
+    private void initRouterConstructor(TypeElement requiredParentTypeElement, MethodSpec.Builder routerConstructorBuilder, MethodSpec.Builder routerStaticNewInstanceBuilder, StringBuilder superStatement, StringBuilder newInstanceStatement) {
+        TypeElement nextElement = requiredClassWithParents.get(requiredParentTypeElement);
+        if (nextElement != null) {
+            initRouterConstructor(nextElement, routerConstructorBuilder, routerStaticNewInstanceBuilder, superStatement, newInstanceStatement);
+        }
+
+        Map<Element, TypeMirror> requiredParentFields = requiredClassWithFields.get(requiredParentTypeElement);
+
+        if (requiredParentFields == null || requiredParentFields.isEmpty()) {
+            return;
+        }
+
+        TreeMap<Element, TypeMirror> treeMap = new TreeMap<>(
+                Comparator.comparing(e -> e.getSimpleName().toString()));
+        treeMap.putAll(requiredParentFields);
+        for (Map.Entry<Element, TypeMirror> entry : treeMap.entrySet()) {
+            Element requiredElement = entry.getKey();
+            TypeMirror requiredTypeMirror = entry.getValue();
+            String name = requiredElement.getSimpleName().toString();
+
+            TypeName requiredTypeNameParameter = getTypeNameParameter(requiredTypeMirror);
+
+            routerConstructorBuilder.addParameter(requiredTypeNameParameter, name);
+            routerStaticNewInstanceBuilder.addParameter(requiredTypeNameParameter, name);
+
+            superStatement.append(name).append(", ");
+            newInstanceStatement.append(name).append(", ");
         }
     }
 

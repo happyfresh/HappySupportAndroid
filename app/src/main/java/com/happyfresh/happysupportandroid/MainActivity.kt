@@ -5,7 +5,9 @@ import android.os.Parcelable
 import android.text.Html
 import android.widget.TextView
 import com.happyfresh.happyrouter.Router
+import com.happyfresh.happyrouter.annotations.Extra
 import com.happyfresh.happyrouter.annotations.Route
+import com.happyfresh.happyrouter.annotations.SaveExtra
 import com.happyfresh.happysupport.helper.StringHelper
 import com.happyfresh.happysupportkotlinextentions.helper.getStringHelper
 import com.happyfresh.happytracker.Tracker
@@ -13,6 +15,10 @@ import org.parceler.Parcels
 
 @Route
 open class MainActivity : BaseActivity() {
+
+    @JvmField
+    @Extra(key = "DEF")
+    internal var def: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
