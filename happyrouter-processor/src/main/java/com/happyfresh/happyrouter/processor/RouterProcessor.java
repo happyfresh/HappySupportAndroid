@@ -13,6 +13,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -792,5 +793,10 @@ public class RouterProcessor extends AbstractProcessor {
          * 4- Write generated class to a file
          */
         JavaFile.builder(enclosingPackageName, binderClassBuilder.build()).build().writeTo(filer);
+    }
+
+    @Override
+    public Set<String> getSupportedOptions() {
+        return Collections.singleton("org.gradle.annotation.processing.aggregating");
     }
 }
