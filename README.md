@@ -1,6 +1,6 @@
 # HappySupportAndroid
 
-[![](https://jitpack.io/v/happyfresh/HappySupportAndroid.svg)](https://jitpack.io/#happyfresh/HappySupportAndroid)
+<!-- [![](https://jitpack.io/v/happyfresh/HappySupportAndroid.svg)](https://jitpack.io/#happyfresh/HappySupportAndroid) -->
 
 This library for supporting our android development
 
@@ -18,6 +18,7 @@ allprojects {
 ```
 <b>Step 2.</b> Add the dependency
 ```gradle
+def latest_version = "1.5.4"
 dependencies {
         // HappySupport
         implementation "com.github.happyfresh.HappySupportAndroid:happysupport:$latest_version"
