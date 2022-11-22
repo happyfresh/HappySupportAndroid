@@ -7,14 +7,16 @@ import android.support.annotation.Nullable;
 import com.happyfresh.happytracker.annotations.Event;
 import com.happyfresh.happytracker.annotations.Identify;
 import com.happyfresh.happytracker.annotations.Property;
-import com.happyfresh.happytracker.annotations.Provider;
+import com.happyfresh.happytracker.annotations.Providers;
 import com.happyfresh.happytracker.annotations.SaveProperties;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Tracker {
@@ -55,21 +57,27 @@ public class Tracker {
     // Single-interface proxy creation guarded by parameter safety.
     public synchronized static <T> T create(@Nullable Context context, final Class<T> tracker) {
         // Set adapter first
-        Adapter adapter = new Adapter();
+        List<Adapter> adaptersList = new ArrayList<>();
         try {
             // Get Provider
-            Provider provider = tracker.getAnnotation(Provider.class);
-            if (provider == null) {
+            Providers providers = tracker.getAnnotation(Providers.class);
+            if (providers == null) {
                 throw new Exception("Provider not defined in " + tracker.getName());
             }
-            adapter = provider.value().newInstance();
+            for(int i = 0; i< providers.value().length; i++) {
+                adaptersList.add(providers.value()[i].newInstance());
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            adapter.setContext(context);
+            for(int i=0; i<adaptersList.size(); i++) {
+                adaptersList.get(i).setContext(context);
+            }
+
         }
 
-        final Adapter finalAdapter = adapter;
+        final List<Adapter> finalAdapter = adaptersList;
 
         return (T) Proxy.newProxyInstance(tracker.getClassLoader(), new Class<?>[] {tracker},
                 new InvocationHandler() {
@@ -86,18 +94,20 @@ public class Tracker {
                         Identify identify = method.getAnnotation(Identify.class);
                         Event event = method.getAnnotation(Event.class);
 
-                        try {
-                            if (saveProperty != null) {
-                                doSaveProperties(finalAdapter, saveProperty, method, args);
+                        for(int i=0; i<finalAdapter.size(); i++) {
+                            try {
+                                if (saveProperty != null) {
+                                    doSaveProperties(finalAdapter.get(i), saveProperty, method, args);
+                                }
+                                else if (identify != null) {
+                                    doIdentify(finalAdapter.get(i), method, args);
+                                }
+                                else if (event != null) {
+                                    doEvent(finalAdapter.get(i), event, method, args);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                            else if (identify != null) {
-                                doIdentify(finalAdapter, method, args);
-                            }
-                            else if (event != null) {
-                                doEvent(finalAdapter, event, method, args);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
 
                         return null;
@@ -106,8 +116,8 @@ public class Tracker {
     }
 
     private static <T extends Adapter> void doSaveProperties(T adapter, SaveProperties savePropertiesAnnotation,
-            Method method,
-            Object... args)
+                                                             Method method,
+                                                             Object... args)
             throws Throwable {
         String event = savePropertiesAnnotation.value();
         Properties properties = getSaveProperties(adapter.getClass(), event);
@@ -200,7 +210,7 @@ public class Tracker {
     }
 
     private static Properties createProperties(@Nullable Properties saveProperties, @NonNull Annotation[][] annotations,
-            Object... args) throws Throwable {
+                                               Object... args) throws Throwable {
         Properties properties = new Properties();
         for (int i = 0; i < args.length; i++) {
             // find property annotation

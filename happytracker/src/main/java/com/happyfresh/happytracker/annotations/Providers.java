@@ -12,7 +12,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Target(TYPE)
 @Retention(RUNTIME)
-public @interface Provider {
+public @interface Providers {
 
-    Class<? extends Adapter> value();
+    Class<? extends Adapter>[] value();
 }
