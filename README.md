@@ -40,10 +40,9 @@ dependencies {
 
 ### [HappyTracker](https://github.com/happyfresh/HappySupportAndroid/wiki/HappyTracker)
 
+### [HappyRouter](https://github.com/happyfresh/HappySupportAndroid/wiki/HappyRouter)
+
 ## Changes Log
 <b>Version 1.5.5</b> 
   - Rename Annotation `Provider` to `Providers` 
   - Annotation `Providers` now can be multiple `Adapter`
-
-
-### [HappyRouter](https://github.com/happyfresh/HappySupportAndroid/wiki/HappyRouter)
