@@ -18,7 +18,7 @@ allprojects {
 ```
 <b>Step 2.</b> Add the dependency
 ```gradle
-def latest_version = "1.5.4"
+def latest_version = "1.5.5"
 dependencies {
         // HappySupport
         implementation "com.github.happyfresh.HappySupportAndroid:happysupport:$latest_version"
@@ -39,5 +39,11 @@ dependencies {
 * [StringHelper](https://github.com/happyfresh/HappySupportAndroid/wiki/StringHelper)
 
 ### [HappyTracker](https://github.com/happyfresh/HappySupportAndroid/wiki/HappyTracker)
+
+## Changes Log
+<b>Version 1.5.5</b> 
+  - Rename Annotation `Provider` to `Providers` 
+  - Annotation `Providers` now can be multiple `Adapter`
+
 
 ### [HappyRouter](https://github.com/happyfresh/HappySupportAndroid/wiki/HappyRouter)
